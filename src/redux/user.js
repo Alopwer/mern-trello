@@ -64,12 +64,9 @@ export const login = (user) => (dispatch) => {
       return foundUser || new Error('User not found')
     })
     .then(foundUser => {
-      console.log(foundUser)
-      pass.hash(foundUser.password, foundUser.salt)
+      pass.hash(user.password, foundUser.salt)
         .then(res => {
-          console.log('success')
-          if (foundUser.pwd === res.hash) {
-            console.log('success')
+          if (foundUser.password === res.hash) {
             dispatch(loginSuccess())
             dispatch(applyActiveUser())
             dispatch(toggleFetching())
