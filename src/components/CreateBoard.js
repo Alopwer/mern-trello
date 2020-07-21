@@ -1,5 +1,6 @@
 import React from 'react'
 import Axios from 'axios'
+import { withRouter } from 'react-router-dom'
 
 class CreateBoard extends React.Component {
   constructor(props) {
@@ -60,7 +61,7 @@ class CreateBoard extends React.Component {
     }
     
     Axios.post('http://localhost:5000/boards/add', board)
-      .then(() => window.location = '/')
+      .then(() => this.props.history.push('/'))
   }
 
   render() {
@@ -101,4 +102,4 @@ class CreateBoard extends React.Component {
   }
 }
 
-export default CreateBoard
+export default withRouter(CreateBoard)

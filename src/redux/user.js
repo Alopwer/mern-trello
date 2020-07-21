@@ -29,7 +29,7 @@ export default function user(state = initialState, action) {
         ...state,
         isFetching: !state.isFetching
       }
-    case TOGGLE_FETCHING:
+    case APPLY_ACTIVE_USER:
       return {
         ...state,
         user: action.payload
@@ -68,7 +68,8 @@ export const login = (user) => (dispatch) => {
         .then(res => {
           if (foundUser.password === res.hash) {
             dispatch(loginSuccess())
-            dispatch(applyActiveUser())
+            keepUser(foundUser._id)
+            dispatch(applyActiveUser(foundUser))
             dispatch(toggleFetching())
           } else {
             dispatch(loginFailure())
@@ -93,4 +94,22 @@ export const signup = (user) => (dispatch) => {
         // window.location = '/login'
       });
   })
+}
+
+const keepUser = (id) => {
+  localStorage.setItem('id', JSON.stringify(id));
+}
+
+export const checkIfLoggedIn = () => (dispatch) => {
+  const id = JSON.parse(localStorage.getItem('id'));
+  Axios.get('http://localhost:5000/users')
+    .then(res => {
+      const foundUser = res.data.find(u => u._id === id);
+      return foundUser || new Error('User not found')
+    })
+    .then(foundUser => {
+      dispatch(loginSuccess())
+      dispatch(applyActiveUser(foundUser))
+      dispatch(toggleFetching())
+    })
 }

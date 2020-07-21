@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
 import BoardsList from './components/BoardsList';
@@ -6,11 +6,11 @@ import EditBoard from './components/EditBoard';
 import CreateBoard from './components/CreateBoard';
 import CreateUser from './components/CreateUser';
 import Auth from './components/Auth';
+import { checkIfLoggedIn } from './redux/user';
 import { Provider, connect } from 'react-redux';
 import store from './store';
 
 function App({ isLoggedIn }) {
-  debugger
   return <Router>
       {
         !isLoggedIn ? 
@@ -40,7 +40,17 @@ function App({ isLoggedIn }) {
 }
 
 const mapStateToProps = ({ user }) => ({
-  isLoggedIn : user.isLoggedIn
+  isLoggedIn : user.isLoggedIn,
 })
 
-export default connect(mapStateToProps)(App);
+const AppContainer = ({ checkIfLoggedIn, isLoggedIn }) => {
+  useEffect(() => {
+    if (!isLoggedIn) {
+      checkIfLoggedIn()
+    }
+  }, [isLoggedIn]);
+
+  return <App isLoggedIn={isLoggedIn} />
+}
+
+export default connect(mapStateToProps, { checkIfLoggedIn })(AppContainer);
