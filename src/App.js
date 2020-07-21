@@ -1,56 +1,42 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
-import BoardsList from './components/BoardsList';
-import EditBoard from './components/EditBoard';
-import CreateBoard from './components/CreateBoard';
-import CreateUser from './components/CreateUser';
-import Auth from './components/Auth';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { checkIfLoggedIn } from './redux/user';
-import { Provider, connect } from 'react-redux';
-import store from './store';
+import AuthPage from './views/AuthPage';
+import HomePage from './views/HomePage';
+import { connect } from 'react-redux';
 
-function App({ isLoggedIn }) {
+function App({ isLoggedIn, isFetching, initialCheck }) {
   return <Router>
-      {
-        !isLoggedIn ? 
-        <>
-          <Link to='/login'>Login</Link>
-          <Link to='/signup'>Signup</Link>
-          <Route path='/login' component={Auth}/>
-          <Route path='/signup' component={CreateUser} />
-        </> :
-        <Redirect to='/' />
-      }
-      {
-        isLoggedIn && 
-        <>
-          <div>
-            <Link to='/'>Home</Link>
-            <Link to='/create'>Create Board</Link>
-            <Link to='/user'>Create user</Link>
-          </div>
-          <Route path='/' exact component={BoardsList} />
-          <Route path='/edit/:id' component={EditBoard} />
-          <Route path='/create' component={CreateBoard} />
-          <Router path='/user' component={CreateUser} />
-        </>
-      }
-    </Router>
+    {/* {
+      !isLoggedIn && !initialCheck && <span>LOADING</span>
+    }
+    {
+      !isLoggedIn && !initialCheck && !isFetching && <AuthPage />
+    } */}
+    {
+      isLoggedIn ? <HomePage /> : <AuthPage />
+    }
+  </Router>
 }
 
-const mapStateToProps = ({ user }) => ({
-  isLoggedIn : user.isLoggedIn,
-})
-
-const AppContainer = ({ checkIfLoggedIn, isLoggedIn }) => {
+const AppContainer = ({ checkIfLoggedIn, isLoggedIn, isFetching, initialCheck }) => {
   useEffect(() => {
     if (!isLoggedIn) {
       checkIfLoggedIn()
     }
   }, [isLoggedIn]);
 
-  return <App isLoggedIn={isLoggedIn} />
+  return <App isLoggedIn={isLoggedIn} 
+    isFetching={isFetching} 
+    initialCheck={initialCheck}
+    />
 }
+
+const mapStateToProps = ({ user }) => ({
+  isLoggedIn : user.isLoggedIn,
+  isFetching: user.isFetching,
+  initialCheck: user.initialCheck
+})
 
 export default connect(mapStateToProps, { checkIfLoggedIn })(AppContainer);

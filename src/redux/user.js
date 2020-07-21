@@ -5,11 +5,14 @@ const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 const LOGIN_FAILURE = 'LOGIN_FAILURE';
 const TOGGLE_FETCHING = 'TOGGLE_FETCHING';
 const APPLY_ACTIVE_USER = 'APPLY_ACTIVE_USER';
+const INITIAL_CHECK = 'INITIAL_CHECK';
+const LOGOUT = 'LOGOUT';
 
 const initialState = {
   isLoggedIn: false,
-  isFetching: false,
-  user: {}
+  isFetching: true,
+  user: {},
+  initialCheck: false
 }
 
 export default function user(state = initialState, action) {
@@ -27,12 +30,23 @@ export default function user(state = initialState, action) {
     case TOGGLE_FETCHING:
       return {
         ...state,
-        isFetching: !state.isFetching
+        isFetching: action.payload
       }
     case APPLY_ACTIVE_USER:
       return {
         ...state,
         user: action.payload
+      }
+    case INITIAL_CHECK:
+      return {
+        ...state,
+        initialCheck: action.payload
+      }
+    case LOGOUT:
+      return {
+        ...state,
+        isLoggedIn: false,
+        initialCheck: false
       }
     default:
       return state
@@ -47,8 +61,9 @@ const loginFailure = () => ({
   type: LOGIN_FAILURE
 })
 
-const toggleFetching = () => ({
-  type: TOGGLE_FETCHING
+const toggleFetching = isFetching => ({
+  type: TOGGLE_FETCHING,
+  payload: isFetching
 })
 
 const applyActiveUser = user => ({
@@ -56,8 +71,17 @@ const applyActiveUser = user => ({
   payload: user
 })
 
+const initialCheck = result => ({
+  type: INITIAL_CHECK,
+  payload: result
+})
+
+const logout = () => ({
+  type: LOGOUT
+})
+
 export const login = (user) => (dispatch) => {
-  dispatch(toggleFetching())
+  dispatch(toggleFetching(true))
   Axios.get('http://localhost:5000/users')
     .then(res => {
       const foundUser = res.data.find(u => u.email === user.email);
@@ -70,27 +94,32 @@ export const login = (user) => (dispatch) => {
             dispatch(loginSuccess())
             keepUser(foundUser._id)
             dispatch(applyActiveUser(foundUser))
-            dispatch(toggleFetching())
           } else {
             dispatch(loginFailure())
-            dispatch(toggleFetching())
           }
         })
     })
     .catch(err => {
       dispatch(loginFailure())
-      dispatch(toggleFetching())
+    })
+    .finally(() => {
+      dispatch(toggleFetching(false))
     })
 }
 
+export const logoutTC = () => (dispatch) => {
+  localStorage.removeItem('id');
+  dispatch(logout())
+}
+
 export const signup = (user) => (dispatch) => {
-  dispatch(toggleFetching())
+  dispatch(toggleFetching(true))
   pass.hash(user.pwd, function(err, salt, hash){
     user.password = hash;
     user.salt = salt;
     Axios.post('http://localhost:5000/users/add', user)
       .then(() => {
-        dispatch(toggleFetching())
+        dispatch(toggleFetching(false))
         // window.location = '/login'
       });
   })
@@ -102,14 +131,21 @@ const keepUser = (id) => {
 
 export const checkIfLoggedIn = () => (dispatch) => {
   const id = JSON.parse(localStorage.getItem('id'));
+  dispatch(toggleFetching(true))
   Axios.get('http://localhost:5000/users')
     .then(res => {
       const foundUser = res.data.find(u => u._id === id);
-      return foundUser || new Error('User not found')
+      return foundUser
     })
     .then(foundUser => {
-      dispatch(loginSuccess())
-      dispatch(applyActiveUser(foundUser))
-      dispatch(toggleFetching())
+      if (foundUser) {
+        dispatch(loginSuccess())
+        dispatch(applyActiveUser(foundUser))
+      }
     })
+    .catch(err => {
+      console.log('not found user')
+    })
+    dispatch(toggleFetching(false))
+    dispatch(initialCheck(true))
 }
