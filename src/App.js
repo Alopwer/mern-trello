@@ -6,16 +6,12 @@ import AuthPage from './views/AuthPage';
 import HomePage from './views/HomePage';
 import { connect } from 'react-redux';
 
-function App({ isLoggedIn, isFetching, initialCheck }) {
+function App({ isLoggedIn }) {
   return <Router>
-    {/* {
-      !isLoggedIn && !initialCheck && <span>LOADING</span>
-    }
     {
-      !isLoggedIn && !initialCheck && !isFetching && <AuthPage />
-    } */}
-    {
-      isLoggedIn ? <HomePage /> : <AuthPage />
+      isLoggedIn 
+        ? <HomePage /> 
+        : <AuthPage />
     }
   </Router>
 }
@@ -27,10 +23,9 @@ const AppContainer = ({ checkIfLoggedIn, isLoggedIn, isFetching, initialCheck })
     }
   }, [isLoggedIn]);
 
-  return <App isLoggedIn={isLoggedIn} 
-    isFetching={isFetching} 
-    initialCheck={initialCheck}
-    />
+  return initialCheck 
+    ? !isFetching && <App isLoggedIn={isLoggedIn} /> 
+    : <p>Loading</p>
 }
 
 const mapStateToProps = ({ user }) => ({

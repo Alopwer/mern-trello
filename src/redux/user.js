@@ -135,17 +135,20 @@ export const checkIfLoggedIn = () => (dispatch) => {
   Axios.get('http://localhost:5000/users')
     .then(res => {
       const foundUser = res.data.find(u => u._id === id);
+      if (!foundUser) {
+        throw new Error('User not found')
+      }
       return foundUser
     })
     .then(foundUser => {
-      if (foundUser) {
-        dispatch(loginSuccess())
-        dispatch(applyActiveUser(foundUser))
-      }
+      dispatch(loginSuccess())
+      dispatch(applyActiveUser(foundUser))
     })
     .catch(err => {
-      console.log('not found user')
+      console.log(err)
     })
-    dispatch(toggleFetching(false))
-    dispatch(initialCheck(true))
+    .finally(() => {
+      dispatch(toggleFetching(false))
+      dispatch(initialCheck(true))
+    })
 }

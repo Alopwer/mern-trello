@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { signup } from '../redux/user';
+import { compose } from 'redux';
+import { withRouter } from 'react-router-dom';
 
 class CreateUser extends React.Component {
   constructor(props) {
@@ -44,6 +46,12 @@ class CreateUser extends React.Component {
     this.props.signup(user)
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.isFetching !== this.props.isFetching) {
+      this.props.history.push('/login')
+    }
+  }
+
   render() {
     return <div>
       <h3>Create New User</h3>
@@ -77,6 +85,13 @@ class CreateUser extends React.Component {
   }
 }
 
-export default connect(null, {
-  signup
-})(CreateUser);
+const mapStateToProps = ({ user }) => ({
+  isFetching: user.isFetching
+})
+
+export default compose(
+  withRouter,
+  connect(mapStateToProps, {
+    signup
+  })
+)(CreateUser);
